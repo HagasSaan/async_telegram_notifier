@@ -1,22 +1,85 @@
+use base64;
 use crate::pull_request::GithubPullRequest;
-// use std::collections::HashMap;
+use std::collections::HashMap;
 
 #[derive(Debug)]
-struct GithubRepository {
+pub struct GithubRepository {
     repository_name: String,
     access_token: String,
-    pull_requests: Vec<GithubPullRequest>,
+    pull_requests: Option<Vec<GithubPullRequest>>,
 }
 
 impl GithubRepository {
-    const URL_REPOSITORY: &'static str = "https://api.github.com/repos/{repository}";
-    const URL_PULLS: &'static str = "{url_repository}/pulls";
-    const URL_FILES: &'static str = "{url_repository}/contents/{path_to_file}";
-    pub fn new(repository_name: String, token: String) {}
-    // fn get_request(&self, url: String) -> HashMap<String, String> {}
-    // fn get_reviewers(&self, raw_pull_request: HashMap<String, String>) -> HashMap<String, String> {}
-    // pub fn get_pull_requests(&self) -> Vec<GithubPullRequest> {}
-    // pub fn get_file(&self, path_to_file: String) -> String {}
+    fn repository_url(&self) -> String {
+        format!("https://api.github.com/repos/{repository}", repository=self.repository_name)
+    }
+    fn pulls_url(&self) -> String {
+        self.repository_url() + "/pulls"
+    }
+    fn files_url(&self, path_to_file: String) -> String {
+        self.repository_url() + &format!("/contents/{path_to_file}", path_to_file=path_to_file)
+    }
+    pub fn new(repository_name: String, access_token: String) -> Self {
+        Self {
+            repository_name: repository_name,
+            access_token: access_token,
+            pull_requests: None,
+        }
+    }
+    async fn get_request(&self, url: String) -> Option<String> {
+        // println!("{:?}", url);
+        let response: String = reqwest::Client::new()
+            .get(&url)
+            .bearer_auth(&self.access_token)
+            .header("User-Agent", "RustReqwest/1.0")
+            .send().await.unwrap()
+            .text().await.unwrap();
+        Some(response)
+    }
+    async fn get_reviewers(&self, raw_pull_request: &serde_json::Value) -> Option<HashMap<String, String>> {
+        // println!("{:?}", raw_pull_request["url"]);
+        let response = self.get_request(
+            raw_pull_request["url"].as_str()?.to_string() + "/reviews"
+        ).await.unwrap();
+        let mut result: HashMap<String, String> = HashMap::new();
+        let reviews: Vec<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        // println!("Reviews: {:?}", reviews);
+        for review in reviews.iter() {
+            result.insert(
+                review["user"]["login"].as_str()?.to_string(), 
+                review["state"].as_str()?.to_string()
+            );
+        }
+        Some(result)
+    }
+    pub async fn get_pull_requests(&self) -> Option<Vec<GithubPullRequest>>{
+        let response = self.get_request(self.pulls_url()).await.unwrap();
+        let raw_pull_requests: Vec<serde_json::Value> = serde_json::from_str(&response).unwrap();
+        let mut pull_requests = Vec::<GithubPullRequest>::new();
+        // lets make it really async, plz
+        for raw_pull_request in raw_pull_requests.iter() {
+            let reviewers = self.get_reviewers(raw_pull_request).await;
+            // println!("{:?}", reviewers);
+            pull_requests.push(GithubPullRequest::init(raw_pull_request, reviewers));
+        }
+        Some(pull_requests)
+    }
+    pub async fn get_file(&self, path_to_file: String) -> Option<String> {
+        let response = self.get_request(self.files_url(path_to_file)).await.unwrap();
+        let json: serde_json::Value = serde_json::from_str(&response).unwrap();
+        let content = json["content"]
+            .as_str()?
+            .split("\n")
+            .collect::<Vec<&str>>()
+            .iter()
+            .map(|chunk|{ base64::decode(chunk).unwrap() })
+            .collect::<Vec<Vec<u8>>>()
+            .iter()
+            .map(|chunk|{ String::from_utf8(chunk.to_vec()).unwrap() })
+            .collect::<Vec<String>>()
+            .concat();
+        Some(content)
+    }
 }
 // @dataclass
 // class GithubRepository:

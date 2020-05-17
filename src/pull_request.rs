@@ -11,6 +11,15 @@ pub struct GithubPullRequest {
     labels: HashSet<String>,
 }
 
+impl GithubPullRequest {
+    pub fn init(
+        raw_pull_request: &serde_json::Value,
+        reviewers: Option<HashMap<String, String>>,
+    ) -> Self {
+        unimplemented!()
+    }
+}
+
 // @dataclass
 // class GithubPullRequest:
 //     html_url: str

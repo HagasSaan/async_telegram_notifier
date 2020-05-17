@@ -1,43 +1,60 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
 // use std::env;
 
-use futures::StreamExt;
-use teloxide::prelude::*;
-
-mod configuration;
-mod developer;
-mod notification_reminder;
-mod notification_service;
-mod pull_request;
+// use futures::StreamExt;
+// use teloxide::prelude::*;
+// use serde_json;
 mod repository;
+use repository::GithubRepository;
+// mod configuration;
+// mod developer;
+// mod notification_reminder;
+// mod notification_service;
+mod pull_request;
+
+// async fn handle_messages(rx: DispatcherHandlerRx<Message>) {
+//     let result = rx.for_each(|message| async move {
+//         println!("{:?}", message);
+//         println!("{:?}", message.answer("pong").send().await);
+//     }).await;
+//     println!("{:?}", result);
+// }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let resp = reqwest::get("https://httpbin.org/ip")
-        .await?
-        .json::<HashMap<String, String>>()
-        .await?;
-    println!("{:#?}", resp);
 
-    let token = "1214608092:AAEe209RQ76oZDJGZA80dbV9IDoIfCkSFv0";
+    let repository_name = "tekliner/dsas".to_string();
+    let token = "94fa772c53c540f137c4db4ca18ad8b464e94735".to_string();
+    let repository = GithubRepository::new(repository_name.clone(), token);
+    let pull_requests = repository.get_pull_requests().await;
+    // let json: serde_json::Value = serde_json::from_str(&response)?;
+    println!("{:?}", pull_requests);
 
-    // let bot = Bot::from_env_with_client(client); 
-    // Creates a new Bot with the TELOXIDE_TOKEN environmental variable (a bot's token) and your reqwest::Client.
-    let proxy = reqwest::Proxy::all("socks5://telegram_user:wqe45gfbSZ_dWWQ@ec2-34-226-247-158.compute-1.amazonaws.com:443")?;
+    let config_file_name = ".github/tg_notifier.yml".to_string();
+    let raw_file = repository.get_file(config_file_name).await;
+    println!("{:?}", raw_file);
 
-    let client = reqwest::Client::builder().proxy(proxy).build()?;
+    // let resp = reqwest::get("https://httpbin.org/ip")
+    //     .await?
+    //     .json::<HashMap<String, String>>()
+    //     .await?;
+    // println!("{:#?}", resp);
 
-    let bot = Bot::with_client(token, client);
+    // let token = "1214608092:AAEe209RQ76oZDJGZA80dbV9IDoIfCkSFv0";
 
-    Dispatcher::new(bot)
-        .messages_handler(|rx: DispatcherHandlerRx<Message>| {
-            rx.for_each(|message| async move {
-                message.answer("pong").send().await.log_on_error().await;
-            })
-        })
-        .dispatch()
-        .await;
+    // // let bot = Bot::from_env_with_client(client); 
+    // // Creates a new Bot with the TELOXIDE_TOKEN environmental variable (a bot's token) and your reqwest::Client.
+    // let proxy = reqwest::Proxy::all("socks5://telegram_user:wqe45gfbSZ_dWWQ@ec2-34-226-247-158.compute-1.amazonaws.com:443")?;
+
+    // let client = reqwest::Client::builder().proxy(proxy).build()?;
+
+    // let bot = Bot::with_client(token, client);
+
+    // Dispatcher::new(bot)
+    //     .messages_handler(handle_messages)
+    //     .dispatch()
+    //     .await;
 
     Ok(())
 }
