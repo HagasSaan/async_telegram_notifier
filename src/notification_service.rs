@@ -1,14 +1,28 @@
 use crate::developer::TelegramChatId;
 use crate::pull_request::GithubPullRequest;
+use std::sync::Arc;
+use teloxide;
 
 #[derive(Debug)]
 pub struct NotificationService {
-    bot: teloxide::Bot,
+    bot: Arc<teloxide::Bot>,
 }
 
 impl NotificationService {
-    pub fn new(token: String, proxy_client: Option<reqwest::Proxy>) {}
-    pub fn send_message(&self, chat_id: TelegramChatId, pull_request: GithubPullRequest) {}
+    pub fn new(token: String, proxy: Option<reqwest::Proxy>) -> Self {
+        let bot = match proxy {
+            Some(proxy) => {
+                let client = reqwest::Client::builder().proxy(proxy).build().unwrap();
+                teloxide::Bot::with_client(token, client)
+            }
+            None => teloxide::Bot::new(token),
+        };
+        Self { bot: bot }
+    }
+
+    pub fn send_message(&self, chat_id: TelegramChatId, pull_request: GithubPullRequest) -> Self {
+        unimplemented!()
+    }
 }
 
 // @dataclass

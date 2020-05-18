@@ -1,21 +1,21 @@
+mod developer;
+mod repository;
+mod configuration;
+mod pull_request;
+mod notification_service;
+// mod notification_reminder;
+
 // use std::collections::HashMap;
 
 // use std::env;
 
 
 // use futures::StreamExt;
-// use teloxide::prelude::*;
 // use serde_json;
-mod repository;
 use repository::GithubRepository;
-mod configuration;
 use configuration::Configuration;
-mod developer;
-mod pull_request;
 use pull_request::GithubPullRequest;
 
-// mod notification_reminder;
-// mod notification_service;
 
 // async fn handle_messages(rx: DispatcherHandlerRx<Message>) {
 //     let result = rx.for_each(|message| async move {
@@ -28,7 +28,7 @@ use pull_request::GithubPullRequest;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    let repository_name = "tekliner/dsas".to_string();
+    let repository_name = "HagasSaan/async_telegram_notifier".to_string();
     let token = "94fa772c53c540f137c4db4ca18ad8b464e94735".to_string();
     let repository = GithubRepository::new(repository_name.clone(), token);
     
@@ -42,15 +42,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:?}", pull_requests);    
     // let pull_requests = repository.get_pull_requests().await;
     // println!("Pull requests: {:?}", pull_requests);
-    let config_file_name = ".github/tg_notifier.yml".to_string();
+    let config_file_name = "configuration_example.yml".to_string();
     let raw_file = repository.get_file(config_file_name).await.unwrap();
     println!("Config file: {:?}", raw_file);
     
 
-    // let raw_configuration = "---\nnumber_of_reviewers: 2\nskip_keywords:\n  - skip1\n  - skip2\nassignee_groups:\n  - developers\n  - codeowners\ndevelopers:\n  - username: user1\n    tg_chat_id: 123\n    group: developers\n    timetable:\n      days:\n        - Monday\n        - Friday\n      started_at: \"09:00:00\"\n      ended_at: \"09:00:00\"\n  - username: user2\n    tg_chat_id: 456\n    group: codeowners\n    timetable:\n      days:\n        - Monday\n        - Saturday\n      started_at: \"12:00:00\"\n      ended_at: \"14:00:00\"";
-    // println!("Configuration: {:?}", raw_configuration);
-    // let configuration: Configuration = Configuration::load_from_str(raw_configuration);
-    // println!("Configuration: {:?}", configuration);
+    let configuration: Configuration = Configuration::load_from_str(&raw_file);
+    println!("Configuration: {:?}", configuration);
 
 
 

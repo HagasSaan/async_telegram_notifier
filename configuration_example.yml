@@ -14,8 +14,8 @@ developers:
       days:
         - Monday
         - Friday
-      started_at: \"09:00:00\"
-      ended_at: \"09:00:00\"
+      started_at: "09:00:00"
+      ended_at: "09:00:00"
   - username: user2
     tg_chat_id: 456
     group: codeowners
@@ -23,5 +23,5 @@ developers:
       days:
         - Monday
         - Saturday
-      started_at: \"12:00:00\"
-      ended_at: \"14:00:00\"
+      started_at: "12:00:00"
+      ended_at: "14:00:00"
