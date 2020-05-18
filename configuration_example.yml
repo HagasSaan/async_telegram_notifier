@@ -1,0 +1,27 @@
+---
+number_of_reviewers: 2
+skip_keywords:
+  - skip1
+  - skip2
+assignee_groups:
+  - developers
+  - codeowners
+developers:
+  - username: user1
+    tg_chat_id: 123
+    group: developers
+    timetable:
+      days:
+        - Monday
+        - Friday
+      started_at: \"09:00:00\"
+      ended_at: \"09:00:00\"
+  - username: user2
+    tg_chat_id: 456
+    group: codeowners
+    timetable:
+      days:
+        - Monday
+        - Saturday
+      started_at: \"12:00:00\"
+      ended_at: \"14:00:00\"

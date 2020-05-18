@@ -1,29 +1,35 @@
+use serde::{Deserialize, Serialize};
+
 pub type TelegramChatId = u32;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Hash)]
 pub struct Developer {
-    tg_chat_id: TelegramChatId,
-    group: String,
-    days: Vec<u8>,
-    // started_at: datetime.time = field(default_factory=lambda: datetime.today())
-    // ended_at: datetime.time = field(default_factory=lambda: datetime.today())
+    pub username: String,
+    pub tg_chat_id: TelegramChatId,
+    pub group: String,
+    pub timetable: Timetable,
 }
 
 impl Developer {
-    pub fn new() {}
-    // pub fn is_working_time(&self) -> bool {}
+    fn is_working_time(&self) -> bool {
+        unimplemented!()
+    }
 }
 
-// @dataclass
-// class Developer:
-//     tg_chat_id: int = -1
-//     group: str = 'developers'
-//     days: List[int] = field(default_factory=lambda: [0, 1, 2, 3, 4])
-//     started_at: datetime.time = field(default_factory=lambda: datetime.today())
-//     ended_at: datetime.time = field(default_factory=lambda: datetime.today())
+#[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Hash)]
+pub struct Timetable {
+    pub days: Vec<Weekdays>,
+    pub started_at: chrono::NaiveTime,
+    pub ended_at: chrono::NaiveTime,
+}
 
-//     @property
-//     def is_working_time(self) -> bool:
-//         now = datetime.now()
-//         weekday = now.today().weekday()
-//         return weekday in self.days and self.started_at <= now < self.ended_at
+#[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Hash)]
+pub enum Weekdays {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+}

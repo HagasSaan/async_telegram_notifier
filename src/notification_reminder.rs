@@ -10,7 +10,7 @@ struct NotificationReminder {
 
 impl NotificationReminder {
     pub fn new(notifier: NotificationService, config: Configuration) {}
-    pub fn remind(&self, pull_requests: GithubPullRequest) {}
+    pub fn remind(&self, pull_requests: Vec<GithubPullRequest>) {}
 }
 
 // class NotificationReminder:

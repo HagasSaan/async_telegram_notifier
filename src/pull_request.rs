@@ -1,62 +1,65 @@
-use std::collections::{HashMap, HashSet};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GithubPullRequest {
-    html_url: String,
-    title: String,
-    developer_username: String,
-    // updated_at
-    // approved_by: HashSet<String>,
-    reviewers: Option<HashMap<String, String>>,
-    // labels: HashSet<String>,
+    pub url: String,
+    pub title: String,
+    pub user: GithubUser,
+    pub labels: Vec<GithubLabel>,
+    pub requested_reviewers: Vec<GithubUser>,
+    pub updated_at: String,
 }
 
 impl GithubPullRequest {
-    pub fn init(
-        raw_pull_request: &serde_json::Value,
-        reviewers: Option<HashMap<String, String>>,
-    ) -> Self {
-        Self {
-            html_url: raw_pull_request["html_url"].as_str().unwrap().to_string(),
-            title: raw_pull_request["title"].as_str().unwrap().to_string(),
-            developer_username: raw_pull_request["user"]["login"]
-                .as_str()
-                .unwrap()
-                .to_string(),
-            // updated_at,
-            // approved_by
-            reviewers: reviewers,
-            // labels
-        }
+    pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
+        // println!("{:?}", string);
+        serde_json::from_str(string).unwrap_or(None)
     }
 }
 
-// @dataclass
-// class GithubPullRequest:
-//     html_url: str
-//     title: str
-//     developer: str
-//     updated_at: datetime
-//     approved_by: Set[str] = field(default_factory=set)
-//     reviewers: Dict[str, str] = field(default_factory=dict)
-//     labels: Set[str] = field(default_factory=set)
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GithubUser {
+    login: String,
+}
 
-//     @classmethod
-//     def init(cls, raw_pull_request: Dict[str, Any]):
-//         reviewers = raw_pull_request['reviewers']
-//         for assignee in raw_pull_request['assignees']:
-//             reviewers[assignee['login']] = reviewers.get(assignee['login'], 'N/A')
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GithubLabel {
+    name: String,
+}
 
-//         return cls(
-//             html_url=raw_pull_request['html_url'],
-//             title=raw_pull_request['title'],
-//             developer=raw_pull_request['user']['login'],
-//             updated_at=datetime.strptime(raw_pull_request['updated_at'], '%Y-%m-%dT%H:%M:%SZ'),
-//             reviewers=reviewers,
-//             approved_by={
-//                 reviewer
-//                 for reviewer, state in reviewers.items()
-//                 if state == 'APPROVED'
-//             },
-//             labels={label['name'] for label in raw_pull_request['labels']}
-//         )
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GithubReviews {
+    user: GithubUser,
+    state: String,
+}
+
+impl GithubReviews {
+    pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
+        // println!("{:?}", string);
+        serde_json::from_str(string).unwrap_or(None)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GithubFile {
+    pub content: String,
+}
+
+impl GithubFile {
+    pub fn load_from_str(string: &str) -> Option<Self> {
+        // println!("{:?}", string);
+        serde_json::from_str(string).unwrap_or(None)
+    }
+    pub fn decode_content(&self) -> String {
+        self.content
+            .split("\n")
+            .collect::<Vec<&str>>()
+            .iter()
+            .map(|chunk| base64::decode(chunk).unwrap())
+            .collect::<Vec<Vec<u8>>>()
+            .iter()
+            .map(|chunk| String::from_utf8(chunk.to_vec()).unwrap())
+            .collect::<Vec<String>>()
+            .concat()
+    }
+}
