@@ -1,6 +1,7 @@
 use base64;
 use crate::pull_request::GithubPullRequest;
 use std::collections::HashMap;
+use futures::future::{join_all};
 
 #[derive(Debug)]
 pub struct GithubRepository {
@@ -52,16 +53,21 @@ impl GithubRepository {
         }
         Some(result)
     }
+
+    async fn build_pull_request(&self, raw_pull_request: &serde_json::Value) -> GithubPullRequest {
+        GithubPullRequest::init(raw_pull_request, self.get_reviewers(raw_pull_request).await)
+    }
+
     pub async fn get_pull_requests(&self) -> Option<Vec<GithubPullRequest>>{
         let response = self.get_request(self.pulls_url()).await.unwrap();
         let raw_pull_requests: Vec<serde_json::Value> = serde_json::from_str(&response).unwrap();
-        let mut pull_requests = Vec::<GithubPullRequest>::new();
-        // lets make it really async, plz
+        let pull_requests = Vec::<GithubPullRequest>::new();
+        let mut tasks = Vec::new();
         for raw_pull_request in raw_pull_requests.iter() {
-            let reviewers = self.get_reviewers(raw_pull_request).await;
-            // println!("{:?}", reviewers);
-            pull_requests.push(GithubPullRequest::init(raw_pull_request, reviewers));
+            tasks.push(self.build_pull_request(raw_pull_request));
         }
+        let result = join_all(tasks).await;
+        println!("{:?}", result);
         Some(pull_requests)
     }
     pub async fn get_file(&self, path_to_file: String) -> Option<String> {

@@ -6,9 +6,9 @@ pub struct GithubPullRequest {
     title: String,
     developer_username: String,
     // updated_at
-    approved_by: HashSet<String>,
-    reviewers: HashMap<String, String>,
-    labels: HashSet<String>,
+    // approved_by: HashSet<String>,
+    reviewers: Option<HashMap<String, String>>,
+    // labels: HashSet<String>,
 }
 
 impl GithubPullRequest {
@@ -16,7 +16,18 @@ impl GithubPullRequest {
         raw_pull_request: &serde_json::Value,
         reviewers: Option<HashMap<String, String>>,
     ) -> Self {
-        unimplemented!()
+        Self {
+            html_url: raw_pull_request["html_url"].as_str().unwrap().to_string(),
+            title: raw_pull_request["title"].as_str().unwrap().to_string(),
+            developer_username: raw_pull_request["user"]["login"]
+                .as_str()
+                .unwrap()
+                .to_string(),
+            // updated_at,
+            // approved_by
+            reviewers: reviewers,
+            // labels
+        }
     }
 }
 
