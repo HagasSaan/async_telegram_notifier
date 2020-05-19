@@ -3,14 +3,21 @@ use crate::notification_service::NotificationService;
 use crate::pull_request::GithubPullRequest;
 
 #[derive(Debug)]
-struct NotificationReminder {
+pub struct NotificationReminder {
     notifier: NotificationService,
     config: Configuration,
 }
 
 impl NotificationReminder {
-    pub fn new(notifier: NotificationService, config: Configuration) {}
-    pub fn remind(&self, pull_requests: Vec<GithubPullRequest>) {}
+    pub fn new(notifier: NotificationService, config: Configuration) -> Self {
+        Self {
+            notifier: notifier,
+            config: config,
+        }
+    }
+    pub async fn remind(&self, pull_requests: Vec<GithubPullRequest>) {
+        println!("Start processing pull requests");
+    }
 }
 
 // class NotificationReminder:

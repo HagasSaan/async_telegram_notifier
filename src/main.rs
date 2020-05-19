@@ -3,19 +3,12 @@ mod repository;
 mod configuration;
 mod pull_request;
 mod notification_service;
-// mod notification_reminder;
+mod notification_reminder;
 
-// use std::collections::HashMap;
-
-// use std::env;
-
-
-// use futures::StreamExt;
-// use serde_json;
 use repository::GithubRepository;
 use configuration::Configuration;
-use pull_request::GithubPullRequest;
-
+use notification_service::NotificationService;
+use notification_reminder::NotificationReminder;
 
 // async fn handle_messages(rx: DispatcherHandlerRx<Message>) {
 //     let result = rx.for_each(|message| async move {
@@ -28,50 +21,21 @@ use pull_request::GithubPullRequest;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    let repository_name = "HagasSaan/async_telegram_notifier".to_string();
-    let token = "94fa772c53c540f137c4db4ca18ad8b464e94735".to_string();
-    let repository = GithubRepository::new(repository_name.clone(), token);
+    let repository_name = "tekliner/dsas".to_string();
+    let github_token = "c4dcf055cc883690a33d73908b62206b545b2854".to_string();
+    let telegram_token = "1214608092:AAEe209RQ76oZDJGZA80dbV9IDoIfCkSFv0".to_string();
+    // let config_file_name = "configuration_example.yml".to_string();
+    let proxy_params: Option<&str> = Some("socks5://telegram_user:wqe45gfbSZ_dWWQ@ec2-34-226-247-158.compute-1.amazonaws.com:443");
     
-    let response = repository.get_request(repository.pulls_url()).await.unwrap();
-    println!("{:?}", response);
-    let pull_requests: Vec<GithubPullRequest> = GithubPullRequest::load_from_str(&response).unwrap();
-    // for pull_request in &pull_requests {
-    //     let review = repository.get_reviews(&pull_request);
-    //     println!("{:?}", review.await);
-    // }
-    println!("{:?}", pull_requests);    
-    // let pull_requests = repository.get_pull_requests().await;
-    // println!("Pull requests: {:?}", pull_requests);
-    let config_file_name = "configuration_example.yml".to_string();
-    let raw_file = repository.get_file(config_file_name).await.unwrap();
-    println!("Config file: {:?}", raw_file);
-    
+    let repository = GithubRepository::new(repository_name, github_token);
+    // let notifier = NotificationService::new(telegram_token, proxy_params);
+    // let raw_config = repository.get_file(config_file_name).await.expect("Failed to get configuration file");
+    // let configuration: Configuration = Configuration::load_from_str(&raw_config);
 
-    let configuration: Configuration = Configuration::load_from_str(&raw_file);
-    println!("Configuration: {:?}", configuration);
-
-
-
-    // let resp = reqwest::get("https://httpbin.org/ip")
-    //     .await?
-    //     .json::<HashMap<String, String>>()
-    //     .await?;
-    // println!("{:#?}", resp);
-
-    // let token = "1214608092:AAEe209RQ76oZDJGZA80dbV9IDoIfCkSFv0";
-
-    // // let bot = Bot::from_env_with_client(client); 
-    // // Creates a new Bot with the TELOXIDE_TOKEN environmental variable (a bot's token) and your reqwest::Client.
-    // let proxy = reqwest::Proxy::all("socks5://telegram_user:wqe45gfbSZ_dWWQ@ec2-34-226-247-158.compute-1.amazonaws.com:443")?;
-
-    // let client = reqwest::Client::builder().proxy(proxy).build()?;
-
-    // let bot = Bot::with_client(token, client);
-
-    // Dispatcher::new(bot)
-    //     .messages_handler(handle_messages)
-    //     .dispatch()
-    //     .await;
+    // let reminder = NotificationReminder::new(notifier, configuration);
+    let pull_requests = repository.get_pull_requests().await.expect("Failed to get pull requests");
+    println!("{:?}", pull_requests);
+    // reminder.remind(pull_requests).await;
 
     Ok(())
 }

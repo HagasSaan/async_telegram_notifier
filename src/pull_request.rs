@@ -3,11 +3,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GithubPullRequest {
     pub url: String,
+    pub html_url: String,
     pub title: String,
     pub user: GithubUser,
     pub labels: Vec<GithubLabel>,
     pub requested_reviewers: Vec<GithubUser>,
     pub updated_at: String,
+    pub reviews: Option<GithubReviews>,
 }
 
 impl GithubPullRequest {
@@ -19,7 +21,7 @@ impl GithubPullRequest {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GithubUser {
-    login: String,
+    pub login: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

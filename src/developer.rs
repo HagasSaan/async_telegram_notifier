@@ -1,17 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-pub type TelegramChatId = u32;
+pub type ChatId = i64;
 
 #[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Hash)]
 pub struct Developer {
     pub username: String,
-    pub tg_chat_id: TelegramChatId,
+    pub tg_chat_id: ChatId,
     pub group: String,
     pub timetable: Timetable,
 }
 
 impl Developer {
-    fn is_working_time(&self) -> bool {
+    pub fn is_working_time(&self) -> bool {
         unimplemented!()
     }
 }

@@ -9,13 +9,13 @@ pub struct GithubRepository {
 }
 
 impl GithubRepository {
-    pub fn repository_url(&self) -> String {
+    fn repository_url(&self) -> String {
         format!("https://api.github.com/repos/{repository}", repository=self.repository_name)
     }
-    pub fn pulls_url(&self) -> String {
+    fn pulls_url(&self) -> String {
         self.repository_url() + "/pulls"
     }
-    pub fn files_url(&self, path_to_file: String) -> String {
+    fn files_url(&self, path_to_file: String) -> String {
         self.repository_url() + &format!("/contents/{path_to_file}", path_to_file=path_to_file)
     }
     pub fn new(repository_name: String, access_token: String) -> Self {
@@ -25,17 +25,18 @@ impl GithubRepository {
             pull_requests: None,
         }
     }
-    pub async fn get_request(&self, url: String) -> Option<String> {
-        println!("{:?}", url);
+    async fn get_request(&self, url: String) -> Option<String> {
+        // println!("{:?}", url);
         let response: String = reqwest::Client::new()
             .get(&url)
             .bearer_auth(&self.access_token)
             .header("User-Agent", "RustReqwest/1.0")
             .send().await.unwrap()
             .text().await.unwrap();
+        // println!("{:?}", response);
         Some(response)
     }
-    pub async fn get_reviews(&self, raw_pull_request: &GithubPullRequest) -> Option<Vec<GithubReviews>> {
+    async fn get_reviews(&self, raw_pull_request: &GithubPullRequest) -> Option<Vec<GithubReviews>> {
         let response = self.get_request(raw_pull_request.url.clone() + "/reviews").await.unwrap();
         let reviews: Option<Vec<GithubReviews>> = GithubReviews::load_from_str(&response);
         reviews
@@ -43,7 +44,11 @@ impl GithubRepository {
 
     pub async fn get_pull_requests(&self) -> Option<Vec<GithubPullRequest>> {
         let response = self.get_request(self.pulls_url()).await.unwrap();
-        let pull_requests: Option<Vec<GithubPullRequest>> = GithubPullRequest::load_from_str(&response);
+        // println!("{:?}", response);
+        let pull_requests: Option<Vec<GithubPullRequest>> = 
+            GithubPullRequest::load_from_str(&response);
+                // .map(|pull_request|{ self.get_reviews })
+        // add reviews here somehow
         pull_requests
     }
     

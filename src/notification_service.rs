@@ -1,4 +1,4 @@
-use crate::developer::TelegramChatId;
+use crate::developer::ChatId;
 use crate::pull_request::GithubPullRequest;
 use std::sync::Arc;
 use teloxide;
@@ -9,9 +9,11 @@ pub struct NotificationService {
 }
 
 impl NotificationService {
-    pub fn new(token: String, proxy: Option<reqwest::Proxy>) -> Self {
-        let bot = match proxy {
-            Some(proxy) => {
+    pub fn new(token: String, proxy_params: Option<&str>) -> Self {
+        let bot = match proxy_params {
+            Some(proxy_params) => {
+                let proxy =
+                    reqwest::Proxy::all(proxy_params).expect("Valid proxy param string expected");
                 let client = reqwest::Client::builder().proxy(proxy).build().unwrap();
                 teloxide::Bot::with_client(token, client)
             }
@@ -20,8 +22,18 @@ impl NotificationService {
         Self { bot: bot }
     }
 
-    pub fn send_message(&self, chat_id: TelegramChatId, pull_request: GithubPullRequest) -> Self {
-        unimplemented!()
+    pub async fn send_message(&self, chat_id: ChatId, pull_request: GithubPullRequest) {
+        let time_ago = pull_request.updated_at;
+        self.bot.send_message(
+            chat_id, 
+            format!(
+                "{developer} requested your review on \"{title}\" ({url}) {time_ago} hours ago.", 
+                developer=pull_request.user.login,
+                title=pull_request.title,
+                url=pull_request.html_url,
+                time_ago=time_ago
+            )
+        );
     }
 }
 
