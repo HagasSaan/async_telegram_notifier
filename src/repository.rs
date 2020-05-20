@@ -1,3 +1,4 @@
+use futures::future::join_all;
 
 use crate::pull_request::{GithubPullRequest, GithubReviews, GithubFile};
 
@@ -26,34 +27,49 @@ impl GithubRepository {
         }
     }
     async fn get_request(&self, url: String) -> Option<String> {
-        // println!("{:?}", url);
-        let response: String = reqwest::Client::new()
+        info!("Prepare to send GET request on {:?}", url);
+        let response = reqwest::Client::new()
             .get(&url)
             .bearer_auth(&self.access_token)
             .header("User-Agent", "RustReqwest/1.0")
-            .send().await.unwrap()
-            .text().await.unwrap();
-        // println!("{:?}", response);
-        Some(response)
+            .send().await.unwrap();
+        info!("Response status: {:?} for {:?}", response.status(), url);
+        let content = response.text().await.unwrap();
+        debug!("Got response: {:?}", content);
+        Some(content)
     }
-    async fn get_reviews(&self, raw_pull_request: &GithubPullRequest) -> Option<Vec<GithubReviews>> {
-        let response = self.get_request(raw_pull_request.url.clone() + "/reviews").await.unwrap();
+    async fn get_reviews(&self, pull_request: &GithubPullRequest) -> Option<Vec<GithubReviews>> {
+        let response = self.get_request(pull_request.url.clone() + "/reviews").await.unwrap();
         let reviews: Option<Vec<GithubReviews>> = GithubReviews::load_from_str(&response);
         reviews
     }
 
+    async fn add_reviews_to_pull_request(&self, mut pull_request: GithubPullRequest) -> GithubPullRequest{
+        let reviews = self.get_reviews(&pull_request);
+        pull_request.reviews = reviews.await;
+        pull_request
+    }
+
     pub async fn get_pull_requests(&self) -> Option<Vec<GithubPullRequest>> {
         let response = self.get_request(self.pulls_url()).await.unwrap();
-        // println!("{:?}", response);
-        let pull_requests: Option<Vec<GithubPullRequest>> = 
-            GithubPullRequest::load_from_str(&response);
-                // .map(|pull_request|{ self.get_reviews })
-        // add reviews here somehow
+        let pull_requests: Option<Vec<GithubPullRequest>> = GithubPullRequest::load_from_str(&response);
+        let mut futures_pull_requests_with_reviews = Vec::new();
+        for pull_request in pull_requests? {
+            futures_pull_requests_with_reviews.push(
+                self.add_reviews_to_pull_request(pull_request)
+            );
+        }
+        let pull_requests = Some(join_all(futures_pull_requests_with_reviews).await);
+        debug!("Got pull requests: {:?}", pull_requests);
         pull_requests
     }
     
-    pub async fn get_file(&self, path_to_file: String) -> Option<String> {
-        let response = self.get_request(self.files_url(path_to_file)).await.unwrap();
+    pub async fn get_file(&self, path_to_file: String, is_absolute_path: bool) -> Option<String> {
+        let url = match is_absolute_path {
+            true => path_to_file,
+            false => self.files_url(path_to_file),
+        };
+        let response = self.get_request(url).await.unwrap();
         let file: Option<GithubFile> = GithubFile::load_from_str(&response);
         match file {
             Some(file) => Some(file.decode_content()),

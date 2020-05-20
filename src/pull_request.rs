@@ -9,12 +9,12 @@ pub struct GithubPullRequest {
     pub labels: Vec<GithubLabel>,
     pub requested_reviewers: Vec<GithubUser>,
     pub updated_at: String,
-    pub reviews: Option<GithubReviews>,
+    pub reviews: Option<Vec<GithubReviews>>,
 }
 
 impl GithubPullRequest {
     pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
-        // println!("{:?}", string);
+        debug!("Got raw pull request: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
 }
@@ -37,7 +37,7 @@ pub struct GithubReviews {
 
 impl GithubReviews {
     pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
-        // println!("{:?}", string);
+        debug!("Got raw review: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
 }
@@ -49,7 +49,7 @@ pub struct GithubFile {
 
 impl GithubFile {
     pub fn load_from_str(string: &str) -> Option<Self> {
-        // println!("{:?}", string);
+        debug!("Got raw file: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
     pub fn decode_content(&self) -> String {

@@ -16,7 +16,8 @@ impl NotificationReminder {
         }
     }
     pub async fn remind(&self, pull_requests: Vec<GithubPullRequest>) {
-        println!("Start processing pull requests");
+        info!("Start processing pull requests");
+        unimplemented!()
     }
 }
 
