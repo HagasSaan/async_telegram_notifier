@@ -1,6 +1,6 @@
 use futures::future::join_all;
 
-use crate::pull_request::{GithubPullRequest, GithubReviews, GithubFile};
+use crate::pull_request::{GithubPullRequest, GithubReview, GithubFile};
 
 #[derive(Debug)]
 pub struct GithubRepository {
@@ -38,9 +38,9 @@ impl GithubRepository {
         debug!("Got response: {:?}", content);
         Some(content)
     }
-    async fn get_reviews(&self, pull_request: &GithubPullRequest) -> Option<Vec<GithubReviews>> {
+    async fn get_reviews(&self, pull_request: &GithubPullRequest) -> Option<Vec<GithubReview>> {
         let response = self.get_request(pull_request.url.clone() + "/reviews").await.unwrap();
-        let reviews: Option<Vec<GithubReviews>> = GithubReviews::load_from_str(&response);
+        let reviews: Option<Vec<GithubReview>> = GithubReview::load_from_str(&response);
         reviews
     }
 
