@@ -36,7 +36,7 @@ impl NotificationReminder {
                 Some(reviews) => {
                     let mut approved_by = HashSet::new();
                     for review in reviews {
-                        if review.state == "COMMENTED" { continue; }
+                        if review.state == "COMMENTED" {}
                         else if review.state == "APPROVED" { approved_by.insert(review.user.clone()); }
                         else { need_to_be_approved_by.insert(review.user.clone()); }
                     }
@@ -53,7 +53,10 @@ impl NotificationReminder {
                     match self.config.get_developer(&username.login) {
                         Some(developer) => developer.group,
                         None => {
-                            error!("Developer not exists in config: {:?}", username.login);
+                            error!(
+                                "Developer {:?} not exists in config, failed to know role, PR: {:?}",
+                                username.login, pull_request.title
+                            );
                             continue;
                         }
                     };
@@ -76,7 +79,10 @@ impl NotificationReminder {
                 let developer = match self.config.get_developer(&username.login) {
                     Some(developer) => developer,
                     None => {
-                        error!("Developer not exists in config: {:?}", username.login);
+                        error!(
+                            "Developer not exists in config: {:?}, can't send message, PR: {:?}", 
+                            username.login, pull_request.title
+                        );
                         continue;
                     }
                 };
