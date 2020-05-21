@@ -124,6 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let configuration: Configuration = Configuration::load_from_str(&raw_config);
     debug!("Got configuration: {:?}", configuration);
     
+
     let reminder = NotificationReminder::new(notifier, configuration);
     reminder.remind(pull_requests).await;
 

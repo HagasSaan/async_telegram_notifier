@@ -20,7 +20,7 @@ impl Configuration {
     pub fn get_developer(&self, username: &String) -> Option<Developer> {
         for developer in &self.developers {
             if &developer.username == username {
-                Some(developer.clone())
+                return Some(developer.clone());
             } else {
                 continue;
             };

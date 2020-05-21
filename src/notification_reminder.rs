@@ -91,8 +91,8 @@ impl NotificationReminder {
                 );
             };
         }
-        let result = join_all(futures_messages_to_send).await;
-        info!("Pull requests processed, with result: {:?}", result);
+        join_all(futures_messages_to_send).await;
+        info!("Pull requests processed");
     }
 }
 

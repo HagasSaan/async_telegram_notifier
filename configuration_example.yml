@@ -19,6 +19,7 @@ developers:
         - Friday
       started_at: "09:00:00"
       ended_at: "17:00:00"
+
   - username: sokdestroy
     tg_chat_id: 355136767
     group: developers
@@ -27,6 +28,7 @@ developers:
         - Monday
       started_at: "12:00:00"
       ended_at: "20:00:00"
+
   - username: aovlexus
     tg_chat_id: 355136767
     group: codeowners
@@ -39,6 +41,7 @@ developers:
         - Friday
       started_at: "09:00:00"
       ended_at: "17:00:00"
+
   - username: lexusimprovado
     tg_chat_id: 355136767
     group: developers
@@ -47,6 +50,7 @@ developers:
         - Monday
       started_at: "12:00:00"
       ended_at: "20:00:00"
+
   - username: VladimirZaytsev
     tg_chat_id: 355136767
     group: codeowners
@@ -59,7 +63,43 @@ developers:
         - Friday
       started_at: "09:00:00"
       ended_at: "17:00:00"
+
+  - username: vlmihnevich
+    tg_chat_id: 355136767
+    group: codeowners
+    timetable:
+      days:
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+      started_at: "09:00:00"
+      ended_at: "17:00:00"
+
+  - username: nilya
+    tg_chat_id: 355136767
+    group: codeowners
+    timetable:
+      days:
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+      started_at: "09:00:00"
+      ended_at: "17:00:00"
+
   - username: 123phg
+    tg_chat_id: 355136767
+    group: developers
+    timetable:
+      days:
+        - Monday
+      started_at: "12:00:00"
+      ended_at: "20:00:00"
+
+  - username: denex
     tg_chat_id: 355136767
     group: developers
     timetable:
