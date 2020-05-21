@@ -18,6 +18,34 @@ impl GithubPullRequest {
         debug!("Got raw pull request: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
+
+    pub fn get_required_approves_usernames(&self) -> HashSet<GithubUser> {
+        let mut required_reviewers = self.requested_reviewers.clone();
+        let reviews: Vec<GithubReview> = match &self.reviews {
+            Some(reviews) => reviews.to_vec(),
+            None => Vec::new(),
+        };
+        for review in reviews {
+            if review.state != "APPROVED" {
+                required_reviewers.insert(review.user);
+            }
+        }
+        required_reviewers
+    }
+
+    pub fn get_approves_usernames(&self) -> HashSet<GithubUser> {
+        let mut result = HashSet::new();
+        let reviews: Vec<GithubReview> = match &self.reviews {
+            Some(reviews) => reviews.to_vec(),
+            None => Vec::new(),
+        };
+        for review in reviews {
+            if review.state == "APPROVED" {
+                result.insert(review.user);
+            }
+        }
+        result
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Hash, Eq, PartialEq, Clone)]

@@ -1,5 +1,5 @@
 use futures::future::join_all;
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap,HashSet};
 use crate::pull_request::GithubUser;
 use crate::configuration::Configuration;
 use crate::notification_service::NotificationService;
@@ -31,74 +31,72 @@ impl NotificationReminder {
                 }
             }
 
-            let mut need_to_be_approved_by: HashSet<GithubUser> = HashSet::new();
-            let approved_by: HashSet<GithubUser> = match &pull_request.reviews {
-                Some(reviews) => {
-                    let mut approved_by = HashSet::new();
-                    for review in reviews {
-                        if review.state == "COMMENTED" {}
-                        else if review.state == "APPROVED" { approved_by.insert(review.user.clone()); }
-                        else { need_to_be_approved_by.insert(review.user.clone()); }
-                    }
-                    approved_by
-                },
-                None => HashSet::new()
-            };
-            let need_to_be_approved_by = need_to_be_approved_by.difference(&approved_by);
-
-            let mut approves_count_by_assignee_groups: HashMap<String, u8> = HashMap::new();
-
-            for username in &approved_by {
-                let username_group = 
-                    match self.config.get_developer(&username.login) {
-                        Some(developer) => developer.group,
-                        None => {
-                            error!(
-                                "Developer {:?} not exists in config, failed to know role, PR: {:?}",
-                                username.login, pull_request.title
-                            );
-                            continue;
-                        }
-                    };
-                let approves_count = approves_count_by_assignee_groups
-                    .entry(username_group)
-                    .or_insert(0);
-                *approves_count += 1;
+            let required_to_be_approved_by = pull_request.get_required_approves_usernames();
+            
+            if required_to_be_approved_by.is_empty() {
+                info!("PR {} doesn't need approves, skipped", &pull_request.title);
             }
 
-            let mut approved_by_assignee_groups: HashMap<String, bool> = HashMap::new();
-            for (group, approves_count) in approves_count_by_assignee_groups {
-                approved_by_assignee_groups.insert(
-                    group, 
-                    approves_count >= self.config.number_of_reviewers
-                );
-            }
+            // let approved_by = pull_request.get_approves_usernames();
 
+            // let mut approves_count_by_assignee_groups: HashMap<String, u8> = HashMap::new();
 
-            for username in need_to_be_approved_by {
+            // for username in &approved_by {
+            //     let username_group = 
+            //         match self.config.get_developer(&username.login) {
+            //             Some(developer) => developer.group,
+            //             None => {
+            //                 error!(
+            //                     "Developer {:?} not exists in config, failed to know role, PR: {:?}",
+            //                     username.login, pull_request.title
+            //                 );
+            //                 continue;
+            //             }
+            //         };
+            //     let approves_count = approves_count_by_assignee_groups
+            //         .entry(username_group)
+            //         .or_insert(0);
+            //     *approves_count += 1;
+            // }
+
+            // let mut approved_by_assignee_groups: HashMap<String, bool> = HashMap::new();
+            // for (group, approves_count) in approves_count_by_assignee_groups {
+            //     approved_by_assignee_groups.insert(
+            //         group, 
+            //         approves_count >= self.config.number_of_reviewers
+            //     );
+            // }
+            // TODO approved_by_assignee_groups
+
+            for username in required_to_be_approved_by {
                 let developer = match self.config.get_developer(&username.login) {
                     Some(developer) => developer,
                     None => {
                         error!(
-                            "Developer not exists in config: {:?}, can't send message, PR: {:?}", 
+                            "Developer not exists in config: {}, can't send message, PR: {}", 
                             username.login, pull_request.title
                         );
                         continue;
                     }
                 };
                 if !developer.is_working_time() {
-                    info!("Not working time for {:?}, skipped", developer.username);
+                    info!("Not working time for {}, skipped", developer.username);
                     continue;
                 }
-                info!("PR processed: {}, added to messages to send", &pull_request.title);
+                info!("PR processed: {}, sending message to {}",
+                    &pull_request.title,
+                    &developer.username
+                );
 
                 futures_messages_to_send.push(
-                    self.notifier.send_message(developer.tg_chat_id, pull_request.clone())
+                    self.notifier.send_message(developer, pull_request.clone())
                 );
             };
         }
-        join_all(futures_messages_to_send).await;
-        info!("Pull requests processed");
+        info!(
+            "{} messages sent. Pull requests processed", 
+            join_all(futures_messages_to_send).await.len()
+        );
     }
 }
 

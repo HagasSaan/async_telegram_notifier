@@ -1,4 +1,4 @@
-use crate::developer::ChatId;
+use crate::developer::Developer;
 use crate::pull_request::GithubPullRequest;
 
 use teloxide::requests::Request;
@@ -29,22 +29,28 @@ impl NotificationService {
         Self { bot: bot }
     }
 
-    pub async fn send_message(&self, chat_id: ChatId, pull_request: GithubPullRequest) {
+    pub async fn send_message(&self, developer: Developer, pull_request: GithubPullRequest) {
         let time_ago = pull_request.updated_at;
         let message = format!(
-            "{developer} requested your review on \"{title}\" ({url}) {time_ago} hours ago.", 
+            "{reviewer}, {developer} requested your review on \"{title}\" ({url}) {time_ago} hours ago.",
+            reviewer=developer.username, 
             developer=pull_request.user.login,
             title=pull_request.title,
             url=pull_request.html_url,
             time_ago=time_ago
         );
-        info!("Sending message to {:?}", chat_id);
+        debug!(
+            "Sending message to {}({}) about {}", 
+            developer.username, 
+            developer.tg_chat_id, 
+            pull_request.title
+        );
         match self.bot.send_message(
-            chat_id, 
+            developer.tg_chat_id, 
             &message
         ).send().await {
-            Ok(_) => info!("Message sended to {:?}", chat_id),
-            Err(e) => error!("{:?} {:?} {:?}", e, chat_id, message),
+            Ok(_) => info!("Message sended to {}({})", developer.username, developer.tg_chat_id),
+            Err(e) => error!("{:?} {:?} {:?}", e, developer, message),
         }
     }
 }
