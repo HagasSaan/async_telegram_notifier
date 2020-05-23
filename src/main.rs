@@ -116,6 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Failed to get pull requests");
     
     let notifier = NotificationService::new(telegram_token, proxy_params);
+    notifier.process_incoming_messages().await;
     
     let raw_config = repository
         .get_file(config_file, is_absolute_path)
@@ -124,7 +125,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let configuration: Configuration = Configuration::load_from_str(&raw_config);
     debug!("Got configuration: {:?}", configuration);
     
-
     let reminder = NotificationReminder::new(notifier, configuration);
     reminder.remind(pull_requests).await;
 

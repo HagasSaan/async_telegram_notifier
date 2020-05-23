@@ -2,13 +2,14 @@ use crate::developer::Developer;
 use crate::pull_request::GithubPullRequest;
 
 use teloxide::requests::Request;
+use teloxide::types;
 
 use std::sync::Arc;
 use teloxide;
 
 #[derive(Debug)]
 pub struct NotificationService {
-    bot: Arc<teloxide::Bot>,
+    pub bot: Arc<teloxide::Bot>,
 }
 
 impl NotificationService {
@@ -31,9 +32,10 @@ impl NotificationService {
 
     pub async fn send_message(&self, developer: Developer, pull_request: GithubPullRequest) {
         let time_ago = pull_request.updated_at;
+        let reviewer = self.get_username_by_chat_id(developer.tg_chat_id).await;
         let message = format!(
             "{reviewer}, {developer} requested your review on \"{title}\" ({url}) {time_ago} hours ago.",
-            reviewer=developer.username, 
+            reviewer=reviewer, 
             developer=pull_request.user.login,
             title=pull_request.title,
             url=pull_request.html_url,
@@ -41,7 +43,7 @@ impl NotificationService {
         );
         debug!(
             "Sending message to {}({}) about {}", 
-            developer.username, 
+            reviewer, 
             developer.tg_chat_id, 
             pull_request.title
         );
@@ -49,8 +51,55 @@ impl NotificationService {
             developer.tg_chat_id, 
             &message
         ).send().await {
-            Ok(_) => info!("Message sended to {}({})", developer.username, developer.tg_chat_id),
+            Ok(_) => info!(
+                "Message sended to {}({}:{})", 
+                developer.username, 
+                reviewer, 
+                developer.tg_chat_id
+            ),
             Err(e) => error!("{:?} {:?} {:?}", e, developer, message),
         }
+    }
+
+    async fn get_username_by_chat_id(&self, tg_chat_id: i64) -> String {
+        let username = match self.bot.get_chat(tg_chat_id).send().await {
+            Ok(result) => {
+                match result.kind {
+                    types::ChatKind::Private{
+                        type_: _,
+                        username,
+                        first_name: _,
+                        last_name: _,
+                    } => {
+                        username.unwrap_or("unknown".to_string())
+                    },
+                    _ => {
+                        error!("Failed to get username of chat_id");
+                        "unknown".to_string()
+                    }
+                }
+            }
+            Err(_) => {
+                error!("Failed to get username of chat_id");
+                "unknown"
+            }.to_string()
+        };
+        username
+    }
+
+    pub async fn process_incoming_messages(&self) {
+        info!("Starting processing incoming messages");
+        let updates = self.bot.get_updates().send().await.unwrap();
+        for update in updates{
+            debug!("Processing incoming message: {:?}", update);
+            let update = update.unwrap();
+            let user_chat_id = update.user().unwrap().id;
+            let result = self.bot.send_message(
+                user_chat_id as i64, 
+                format!("Your chat id: {:?}", user_chat_id)
+            ).send().await;
+            debug!("Message {:?} processed with result: {:?}", update, result);
+        }
+        info!("Finished processing incoming messages");
     }
 }
