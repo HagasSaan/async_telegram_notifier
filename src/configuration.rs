@@ -13,7 +13,8 @@ pub struct Configuration {
 
 impl Configuration {
     pub fn load_from_str(content: &str) -> Self {
-        debug!("Got raw config file: {:?}", content);
+        info!("Got raw config file");
+        debug!("{}", content);
         serde_yaml::from_str(content).expect("Unable to load configuration")
     }
 

@@ -9,24 +9,24 @@ pub struct GithubPullRequest {
     pub user: GithubUser,
     pub labels: HashSet<GithubLabel>,
     pub requested_reviewers: HashSet<GithubUser>,
+    pub assignees: HashSet<GithubUser>,
     pub updated_at: String,
     pub reviews: Option<Vec<GithubReview>>,
 }
 
 impl GithubPullRequest {
     pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
-        debug!("Got raw pull request: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
 
     pub fn get_required_approves_usernames(&self) -> HashSet<GithubUser> {
-        let mut required_reviewers = self.requested_reviewers.clone();
+        let mut required_reviewers = self.assignees.clone();
         let reviews: Vec<GithubReview> = match &self.reviews {
             Some(reviews) => reviews.to_vec(),
             None => Vec::new(),
         };
         for review in reviews {
-            if review.state != "APPROVED" {
+            if review.state == "REQUESTED_CHANGES" {
                 required_reviewers.insert(review.user);
             }
         }
@@ -66,7 +66,6 @@ pub struct GithubReview {
 
 impl GithubReview {
     pub fn load_from_str(string: &str) -> Option<Vec<Self>> {
-        debug!("Got raw review: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
 }
@@ -78,7 +77,6 @@ pub struct GithubFile {
 
 impl GithubFile {
     pub fn load_from_str(string: &str) -> Option<Self> {
-        debug!("Got raw file: {:?}", string);
         serde_json::from_str(string).unwrap_or(None)
     }
     pub fn decode_content(&self) -> String {

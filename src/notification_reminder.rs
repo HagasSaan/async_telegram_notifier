@@ -1,6 +1,6 @@
 use futures::future::join_all;
-use std::collections::{HashMap,HashSet};
-use crate::pull_request::GithubUser;
+use std::collections::HashMap;
+
 use crate::configuration::Configuration;
 use crate::notification_service::NotificationService;
 use crate::pull_request::GithubPullRequest;
@@ -32,53 +32,58 @@ impl NotificationReminder {
             }
 
             let required_to_be_approved_by = pull_request.get_required_approves_usernames();
+            debug!(
+                "PR {:#?} required to be approved by: {:?}", 
+                pull_request.title,
+                required_to_be_approved_by
+            );
             
             if required_to_be_approved_by.is_empty() {
                 info!("PR {} doesn't need approves, skipped", &pull_request.title);
             }
 
-            // let approved_by = pull_request.get_approves_usernames();
+            let approved_by = pull_request.get_approves_usernames();
 
-            // let mut approves_count_by_assignee_groups: HashMap<String, u8> = HashMap::new();
+            let mut approves_count_by_assignee_groups: HashMap<String, u8> = HashMap::new();
 
-            // for username in &approved_by {
-            //     let username_group = 
-            //         match self.config.get_developer(&username.login) {
-            //             Some(developer) => developer.group,
-            //             None => {
-            //                 error!(
-            //                     "Developer {:?} not exists in config, failed to know role, PR: {:?}",
-            //                     username.login, pull_request.title
-            //                 );
-            //                 continue;
-            //             }
-            //         };
-            //     let approves_count = approves_count_by_assignee_groups
-            //         .entry(username_group)
-            //         .or_insert(0);
-            //     *approves_count += 1;
-            // }
+            for username in &approved_by {
+                let username_group = 
+                    match self.config.get_developer(&username.login) {
+                        Some(developer) => developer.group,
+                        None => {
+                            error!(
+                                "Developer {:?} not exists in config, failed to know role, PR: {:?}",
+                                username.login, pull_request.title
+                            );
+                            continue;
+                        }
+                    };
+                *approves_count_by_assignee_groups.entry(username_group).or_insert(0) += 1;
+            }
 
-            // let mut approved_by_assignee_groups: HashMap<String, bool> = HashMap::new();
-            // for (group, approves_count) in approves_count_by_assignee_groups {
-            //     approved_by_assignee_groups.insert(
-            //         group, 
-            //         approves_count >= self.config.number_of_reviewers
-            //     );
-            // }
-            // TODO approved_by_assignee_groups
+            info!("Count of approves by group: {:?}", approves_count_by_assignee_groups);
 
-            for username in required_to_be_approved_by {
-                let developer = match self.config.get_developer(&username.login) {
+            for user in required_to_be_approved_by {
+                if approved_by.contains(&user) {
+                    info!("User {} already approved PR {:?}, skipped", user.login, pull_request.title);
+                    continue;
+                }
+                let developer = match self.config.get_developer(&user.login) {
                     Some(developer) => developer,
                     None => {
                         error!(
                             "Developer not exists in config: {}, can't send message, PR: {}", 
-                            username.login, pull_request.title
+                            user.login, pull_request.title
                         );
                         continue;
                     }
                 };
+
+                if approves_count_by_assignee_groups[&developer.group] >= self.config.number_of_reviewers {
+                    info!("PR approved by group, skipped");
+                    continue;
+                }
+
                 if !developer.is_working_time() {
                     info!("Not working time for {}, skipped", developer.username);
                     continue;

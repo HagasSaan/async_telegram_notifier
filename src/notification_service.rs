@@ -1,3 +1,5 @@
+use teloxide::types::Update;
+use futures::future::join_all;
 use crate::developer::Developer;
 use crate::pull_request::GithubPullRequest;
 
@@ -57,7 +59,7 @@ impl NotificationService {
                 reviewer, 
                 developer.tg_chat_id
             ),
-            Err(e) => error!("{:?} {:?} {:?}", e, developer, message),
+            Err(e) => error!("{:#?}\n{:#?}\n{:#?}", e, developer, message),
         }
     }
 
@@ -87,19 +89,31 @@ impl NotificationService {
         username
     }
 
+    async fn process_update(&self, update: Update) {
+        debug!("Processing incoming message:\n{:#?}", update);
+        let user_chat_id = update.user().unwrap().id;
+        match self.bot.send_message(
+            user_chat_id as i64, 
+            format!("Your chat id: {:?}", user_chat_id)
+        ).send().await {
+            Err(e) => error!("Error while sending message: {:?}", e),
+            _ => ()
+        }
+    }
+
     pub async fn process_incoming_messages(&self) {
         info!("Starting processing incoming messages");
         let updates = self.bot.get_updates().send().await.unwrap();
-        for update in updates{
-            debug!("Processing incoming message: {:?}", update);
-            let update = update.unwrap();
-            let user_chat_id = update.user().unwrap().id;
-            let result = self.bot.send_message(
-                user_chat_id as i64, 
-                format!("Your chat id: {:?}", user_chat_id)
-            ).send().await;
-            debug!("Message {:?} processed with result: {:?}", update, result);
+        let mut futures_updates = vec!();
+        for update in updates {
+            futures_updates.push(
+                self.process_update(update.unwrap())
+            );
         }
+        info!(
+            "{} messages sent. Pull requests processed", 
+            join_all(futures_updates).await.len()
+        );
         info!("Finished processing incoming messages");
     }
 }

@@ -60,7 +60,7 @@ impl GithubRepository {
             );
         }
         let pull_requests = Some(join_all(futures_pull_requests_with_reviews).await);
-        debug!("Got pull requests: {:?}", pull_requests);
+        debug!("Got pull requests:\n{:#?}", pull_requests);
         pull_requests
     }
     

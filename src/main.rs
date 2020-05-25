@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     simple_logger::init_with_level(log_level).expect("Cannot initialize logger");
 
-    debug!("Command line args parsed: {:?}", matches);
+    debug!("Command line args parsed:\n{:#?}", matches);
 
     let repository_name = 
         matches.value_of("repository name")
@@ -123,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Failed to get configuration file");
     let configuration: Configuration = Configuration::load_from_str(&raw_config);
-    debug!("Got configuration: {:?}", configuration);
+    debug!("Got configuration:\n{:#?}", configuration);
     
     let reminder = NotificationReminder::new(notifier, configuration);
     reminder.remind(pull_requests).await;
