@@ -111,7 +111,7 @@ impl NotificationService {
             );
         }
         info!(
-            "{} messages sent. Pull requests processed", 
+            "{} messages sent. Incoming messages processed",
             join_all(futures_updates).await.len()
         );
         info!("Finished processing incoming messages");
