@@ -68,10 +68,7 @@ impl NotificationService {
             Ok(result) => {
                 match result.kind {
                     types::ChatKind::Private{
-                        type_: _,
-                        username,
-                        first_name: _,
-                        last_name: _,
+                        username, ..
                     } => {
                         username.unwrap_or("unknown".to_string())
                     },
