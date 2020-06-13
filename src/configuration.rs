@@ -5,10 +5,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Configuration {
-    pub number_of_reviewers: u8,
     pub skip_keywords: HashSet<String>,
-    pub assignee_groups: HashSet<String>,
     pub developers: HashSet<Developer>,
+    pub group_chat_id: Option<i64>,
 }
 
 impl Configuration {

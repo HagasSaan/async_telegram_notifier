@@ -1,11 +1,10 @@
 ---
-number_of_reviewers: 1
+group_chat_id: 355136767
+
 skip_keywords:
   - work-in-progress
   - do-not-merge
-assignee_groups:
-  - developers
-  - codeowners
+
 developers:
   - username: fantom0005
     tg_chat_id: 355136767

@@ -1,5 +1,4 @@
 use futures::future::join_all;
-use std::collections::HashMap;
 
 use crate::configuration::Configuration;
 use crate::notification_service::NotificationService;
@@ -41,24 +40,6 @@ impl NotificationReminder {
 
             let approved_by = pull_request.get_approves_usernames();
 
-            let mut approves_count_by_assignee_groups: HashMap<String, u8> = HashMap::new();
-
-            for username in &approved_by {
-                let username_group = 
-                    match self.config.get_developer(&username.login) {
-                        Some(developer) => developer.group,
-                        None => {
-                            error!(
-                                "Developer {:?} not exists in config, failed to know role, PR: {:?}",
-                                username.login, pull_request.title
-                            );
-                            continue;
-                        }
-                    };
-                *approves_count_by_assignee_groups.entry(username_group).or_insert(0) += 1;
-            }
-
-            info!("Count of approves by group: {:?}", approves_count_by_assignee_groups);
 
             for user in required_to_be_approved_by {
                 if approved_by.contains(&user) {
@@ -75,11 +56,6 @@ impl NotificationReminder {
                         continue;
                     }
                 };
-
-                if approves_count_by_assignee_groups[&developer.group] >= self.config.number_of_reviewers {
-                    info!("PR approved by group, skipped");
-                    continue;
-                }
 
                 if !developer.is_working_time() {
                     info!("Not working time for {}, skipped", developer.username);
