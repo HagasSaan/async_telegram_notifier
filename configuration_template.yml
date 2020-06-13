@@ -1,0 +1,27 @@
+---
+group_chat_id: 789
+
+skip_keywords:
+  - skipmel
+  - do-not-merge
+
+developers:
+  - username: user1
+    tg_chat_id: 123
+    timetable:
+      days:
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+      started_at: "09:00:00"
+      ended_at: "17:00:00"
+
+  - username: user2
+    tg_chat_id: 456
+    timetable:
+      days:
+        - Monday
+      started_at: "12:00:00"
+      ended_at: "20:00:00"

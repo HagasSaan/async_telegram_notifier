@@ -10,6 +10,7 @@ extern crate simple_logger;
 mod developer;
 mod repository;
 mod configuration;
+mod configuration_tests;
 mod pull_request;
 mod notification_service;
 mod notification_reminder;

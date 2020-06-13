@@ -8,7 +8,6 @@ skip_keywords:
 developers:
   - username: fantom0005
     tg_chat_id: 355136767
-    group: codeowners
     timetable:
       days:
         - Monday
@@ -21,7 +20,6 @@ developers:
 
   - username: sokdestroy
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -30,7 +28,6 @@ developers:
 
   - username: aovlexus
     tg_chat_id: 355136767
-    group: codeowners
     timetable:
       days:
         - Monday
@@ -43,7 +40,6 @@ developers:
 
   - username: lexusimprovado
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -52,7 +48,6 @@ developers:
 
   - username: VladimirZaytsev
     tg_chat_id: 355136767
-    group: codeowners
     timetable:
       days:
         - Monday
@@ -65,7 +60,6 @@ developers:
 
   - username: vlmihnevich
     tg_chat_id: 355136767
-    group: codeowners
     timetable:
       days:
         - Monday
@@ -78,7 +72,6 @@ developers:
 
   - username: nilya
     tg_chat_id: 355136767
-    group: codeowners
     timetable:
       days:
         - Monday
@@ -91,7 +84,6 @@ developers:
 
   - username: 123phg
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -100,7 +92,6 @@ developers:
 
   - username: denex
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -109,7 +100,6 @@ developers:
 
   - username: oev81
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -118,7 +108,6 @@ developers:
 
   - username: figonet
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday
@@ -127,7 +116,6 @@ developers:
 
   - username: HagasSaan
     tg_chat_id: 355136767
-    group: developers
     timetable:
       days:
         - Monday

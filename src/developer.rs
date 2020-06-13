@@ -1,13 +1,10 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-pub type ChatId = i64;
-
 #[derive(Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Clone)]
 pub struct Developer {
     pub username: String,
-    pub tg_chat_id: ChatId,
-    pub group: String,
+    pub tg_chat_id: i64,
     pub timetable: Timetable,
 }
 

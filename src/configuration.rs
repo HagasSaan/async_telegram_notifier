@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct Configuration {
     pub skip_keywords: HashSet<String>,
     pub developers: HashSet<Developer>,
